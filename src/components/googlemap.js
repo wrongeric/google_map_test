@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {Component, PropTypes} from 'react';
 import ReactDOM from 'react-dom';
 
 class Map extends React.Component{
@@ -15,26 +15,27 @@ class Map extends React.Component{
         }
     }
 
-    loadMap(){
-        if(this.props && this.props.google){
+    loadMap() {
+        if (this.props && this.props.google) {
+            // google is available
             const {google} = this.props;
             const maps = google.maps;
 
             const mapRef = this.refs.map;
             const node = ReactDOM.findDOMNode(mapRef);
 
-            let zoom =14;
-            let lat = 33.6846;
-            let lng = -117.8265;
+            let {initialCenter, zoom} = this.props;
+            const {lat, lng} = initialCenter;
             const center = new maps.LatLng(lat, lng);
             const mapConfig = Object.assign({}, {
                 center: center,
                 zoom: zoom
             })
             this.map = new maps.Map(node, mapConfig);
-            console.log(this.map);
         }
     }
+
+
 
     render(){
         const style = {
@@ -44,6 +45,21 @@ class Map extends React.Component{
         return (
             <div style={style} ref="map">map will come here</div>
         );
+    }
+}
+
+Map.propTypes = {
+    google: React.PropTypes.object,
+    zoom: React.PropTypes.number,
+    initialCenter: React.PropTypes.object
+}
+
+Map.defaultProps = {
+    zoom: 13,
+    // San Francisco, by default
+    initialCenter: {
+        lat: 33.6846,
+        lng: -117.8265,
     }
 }
 
