@@ -71,11 +71,65 @@ class Map extends React.Component{
                 center: center,
                 zoom: zoom
             })
+
+            //This would be a cumbersome way of making an event for each event handler, instead of copy and pasting each time
+            //we can make a list of events we want to handle and then map through that list to addListeners to each handler.
+            // let centerChangedTimeout;
+            // this.map.addListener('dragend', (evt) => {
+            //     if (centerChangedTimeout) {
+            //         clearTimeout(centerChangedTimeout);
+            //         centerChangedTimeout = null;
+            //     }
+            //     centerChangedTimeout = setTimeout(() => {
+            //         this.props.onMove(this.map);
+            //     }, 0);
+            // })
+
             this.map = new maps.Map(node, mapConfig);
+
+            const evtNames = ['click', 'dragend'];
+            //for each event name, we want to add add event listeners to handle each event.
+            evtNames.forEach(e => {
+                this.map.addListener(e, this.handleEvent(e));
+            });
+            //putting this here to let me know where I left off, Map.proptypes is found at bottom - where to put this forEach function?
+            evtNames.forEach(e => Map.propTypes[this.camelize(e)] = T.func);
+
+            // this.map.addListener('dragend', (evt) => {
+            //     this.props.onMove(this.map);
+            // })
         }
     }
 
+    //not sure if camelize function should be here
+    camelize(str) {
+        return str.split(' ').map(function(word){
+            return word.charAt(0).toUpperCase() + word.slice(1);
+        }).join('');
+    }
+    handleEvent(evtName) {
+        let timeout;
 
+        //changes our callbacks to better reflect React naming schemes: ex: onClick - not sure where this should be
+        // camelize(str) {
+        //     return str.split(' ').map(function(word){
+        //         return word.charAt(0).toUpperCase() + word.slice(1);
+        //     }).join('');
+        // }
+        const handlerName = `on${this.camelize(evtName)}`;
+
+        return (e) => {
+            if (timeout) {
+                clearTimeout(timeout);
+                timeout = null;
+            }
+            timeout = setTimeout(() => {
+                if (this.props[handlerName]) {
+                    this.props[handlerName](this.props, this.map, e);
+                }
+            }, 0);
+        }
+    }
 
     render(){
         const style = {
@@ -93,7 +147,8 @@ Map.propTypes = {
     zoom: React.PropTypes.number,
     initialCenter: React.PropTypes.object,
     //maybe optional to center around current location for final project
-    centerAroundCurrentLocation: React.PropTypes.bool
+    centerAroundCurrentLocation: React.PropTypes.bool,
+    onMove: React.PropTypes.func,
 }
 
 Map.defaultProps = {
@@ -104,6 +159,7 @@ Map.defaultProps = {
         lng: -117.8265,
     },
     centerAroundCurrentLocation: false,
+    onMove: function() {} // default prop
 }
 
 export default Map;
