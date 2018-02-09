@@ -1,11 +1,14 @@
 import React, {Component, PropTypes} from 'react';
 import ReactDOM from 'react-dom';
+import {Camelize} from './utils/helper';
+
 
 class Map extends React.Component{
     constructor(props) {
         super(props);
 
         const {lat, lng} = this.props.initialCenter;
+        this.evtNames = ['click', 'dragend', 'ready'];
         this.state = {
             currentLocation: {
                 lat: lat,
@@ -72,7 +75,7 @@ class Map extends React.Component{
                 zoom: zoom
             })
 
-            //This would be a cumbersome way of making an event for each event handler, instead of copy and pasting each time
+            //This would be a clunky way of making an event for each event handler, instead of copy and pasting each time
             //we can make a list of events we want to handle and then map through that list to addListeners to each handler.
             // let centerChangedTimeout;
             // this.map.addListener('dragend', (evt) => {
@@ -87,36 +90,27 @@ class Map extends React.Component{
 
             this.map = new maps.Map(node, mapConfig);
 
-            const evtNames = ['click', 'dragend'];
             //for each event name, we want to add add event listeners to handle each event.
-            evtNames.forEach(e => {
+            this.evtNames.forEach(e => {
                 this.map.addListener(e, this.handleEvent(e));
             });
-            //putting this here to let me know where I left off, Map.proptypes is found at bottom - where to put this forEach function?
-            evtNames.forEach(e => Map.propTypes[this.camelize(e)] = T.func);
 
+            maps.event.trigger(this.map, 'ready');
             // this.map.addListener('dragend', (evt) => {
             //     this.props.onMove(this.map);
             // })
         }
     }
 
-    //not sure if camelize function should be here
-    camelize(str) {
-        return str.split(' ').map(function(word){
-            return word.charAt(0).toUpperCase() + word.slice(1);
-        }).join('');
-    }
+
+
     handleEvent(evtName) {
         let timeout;
 
+        //putting this here to let me know where I left off, Map.proptypes is found at bottom - where to put this forEach function?
+        // this.evtNames.forEach(e => Map.propTypes[Camelize(e)] = PropTypes.func);
         //changes our callbacks to better reflect React naming schemes: ex: onClick - not sure where this should be
-        // camelize(str) {
-        //     return str.split(' ').map(function(word){
-        //         return word.charAt(0).toUpperCase() + word.slice(1);
-        //     }).join('');
-        // }
-        const handlerName = `on${this.camelize(evtName)}`;
+        const handlerName = `on${Camelize(evtName)}`;
 
         return (e) => {
             if (timeout) {
@@ -130,17 +124,35 @@ class Map extends React.Component{
             }, 0);
         }
     }
+    renderChildren(){
+        const {children} = this.props;
 
+        //if map is used without children elements, the renderChildren method won't blow up the rest of application
+        if (!children) return;
+
+        //Clones each of the children passed by a component
+        return React.Children.map(children, c => {
+            return React.cloneElement(c, {
+                map: this.map,
+                google: this.props.google,
+                mapCenter: this.state.currentLocation
+            });
+        })
+    }
     render(){
         const style = {
             width: '100vw',
             height: '60vh'
         };
         return (
-            <div style={style} ref="map">map will come here</div>
+            <div style={style} ref="map">
+                Loading map...
+                {this.renderChildren()}
+            </div>
         );
     }
 }
+
 
 Map.propTypes = {
     google: React.PropTypes.object,
