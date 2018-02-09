@@ -96,6 +96,8 @@ class Map extends React.Component{
             });
 
             maps.event.trigger(this.map, 'ready');
+
+            // this.forceUpdate();
             // this.map.addListener('dragend', (evt) => {
             //     this.props.onMove(this.map);
             // })

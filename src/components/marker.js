@@ -4,8 +4,8 @@ export class Marker extends Component {
     constructor(props){
         super(props)
     }
-
-    ComponentDidUpdate(prevProps) {
+    //maybe this is ComponentDidMount  - not sure if it is - suggested changes is forceUpdate at end of loadMap function
+    ComponentWillMount(prevProps) {
         //Will only update when the position or the map props have changed - necessary to re-render Markers on Map
         if ((this.props.map !== prevProps.map) ||
             (this.props.position !== prevProps.position)) {
